@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export type Pub = {
   id: number;
@@ -6,19 +7,56 @@ export type Pub = {
   slug: string;
   subtitle: string;
   description: string;
+  longDescription?: string;
+  authorName?: string;
   category: string;
   price: string;
   currency: string;
   coverColor: string;
+  coverImageUrl?: string;
+  tocImageUrl?: string;
+  spreadImageUrl?: string;
+  bonuses?: string;
   buyLink: string;
   sampleLink: string;
   isFree: boolean;
 };
 
-export function BookCover({ pub, className = "" }: { pub: Pub; className?: string }) {
+const SIZES = {
+  sm: { box: "h-44 w-32", sizes: "128px" },
+  md: { box: "h-56 w-40", sizes: "160px" },
+  lg: { box: "h-72 w-52", sizes: "208px" },
+  xl: { box: "h-96 w-72", sizes: "288px" },
+} as const;
+
+export function BookCover({
+  pub,
+  className = "",
+  size = "md",
+}: {
+  pub: Pub;
+  className?: string;
+  size?: keyof typeof SIZES;
+}) {
+  const { box, sizes } = SIZES[size];
+
+  if (pub.coverImageUrl) {
+    return (
+      <div className={`relative ${box} overflow-hidden rounded-r-md shadow-lg ${className}`}>
+        <Image
+          src={pub.coverImageUrl}
+          alt={pub.title}
+          fill
+          sizes={sizes}
+          className="object-cover"
+        />
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`book3d flex h-56 w-40 flex-col justify-between rounded-r-md p-4 text-white ${className}`}
+      className={`book3d flex ${box} flex-col justify-between rounded-r-md p-4 text-white ${className}`}
       style={{
         background: `linear-gradient(135deg, ${pub.coverColor} 0%, #14315a 100%)`,
         borderLeft: "6px solid rgba(201,162,39,.85)",
@@ -37,9 +75,11 @@ export function priceLabel(p: Pub) {
 
 export function BookCard({ pub }: { pub: Pub }) {
   return (
-    <div className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+    <div
+      className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-[0_0_35px_-5px_rgba(201,162,39,0.45)]"
+    >
       <div className="mb-5 flex justify-center">
-        <BookCover pub={pub} />
+        <BookCover pub={pub} size="lg" />
       </div>
       <p className="text-xs font-semibold uppercase tracking-widest text-gold">{pub.category}</p>
       <h3 className="mt-1 font-display text-lg font-bold text-navy">{pub.title}</h3>
@@ -48,7 +88,7 @@ export function BookCard({ pub }: { pub: Pub }) {
         <span className="font-semibold text-navy">{priceLabel(pub)}</span>
         <Link
           href={`/publications/${pub.slug}`}
-          className="rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white hover:bg-navy-light"
+          className="rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-navy-light"
         >
           View Book
         </Link>

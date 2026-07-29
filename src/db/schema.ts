@@ -37,10 +37,21 @@ export const publications = pgTable("publications", {
   slug: varchar("slug", { length: 220 }).notNull().unique(),
   subtitle: varchar("subtitle", { length: 250 }).default("").notNull(),
   description: text("description").default("").notNull(),
+  // Long-form sales page copy (the full persuasive page content), separate
+  // from the short "description" used on listing cards.
+  longDescription: text("long_description").default("").notNull(),
+  authorName: varchar("author_name", { length: 120 }).default("").notNull(),
   category: varchar("category", { length: 120 }).default("Premium eBooks").notNull(),
   price: numeric("price", { precision: 10, scale: 2 }).default("0").notNull(),
   currency: varchar("currency", { length: 8 }).default("USD").notNull(),
   coverColor: varchar("cover_color", { length: 32 }).default("#0b1f3a").notNull(),
+  // Real book cover photo/render, table-of-contents preview image, and one
+  // sample interior spread image, all served from /public/images/publications/
+  coverImageUrl: text("cover_image_url").default("").notNull(),
+  tocImageUrl: text("toc_image_url").default("").notNull(),
+  spreadImageUrl: text("spread_image_url").default("").notNull(),
+  // JSON array of { title: string, description: string } bonus items
+  bonuses: text("bonuses").default("[]").notNull(),
   buyLink: text("buy_link").default("").notNull(),
   sampleLink: text("sample_link").default("").notNull(),
   status: varchar("status", { length: 24 }).default("published").notNull(),

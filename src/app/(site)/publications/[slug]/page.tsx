@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -11,6 +12,16 @@ export const dynamic = "force-dynamic";
 async function getPub(slug: string) {
   const rows = await db.select().from(publications).where(eq(publications.slug, slug)).limit(1);
   return (rows[0] as unknown as Pub) ?? null;
+}
+
+function parseBonuses(json?: string): { title: string; description: string }[] {
+  if (!json) return [];
+  try {
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -38,6 +49,8 @@ export default async function PublicationPage({ params }: { params: Promise<{ sl
     .where(and(eq(publications.category, pub.category), ne(publications.slug, slug)))
     .limit(3)) as unknown as Pub[];
 
+  const bonuses = parseBonuses(pub.bonuses);
+
   return (
     <div>
       <div className="bg-navy text-white">
@@ -49,6 +62,7 @@ export default async function PublicationPage({ params }: { params: Promise<{ sl
             <p className="text-xs uppercase tracking-[0.25em] text-gold-light">{pub.category}</p>
             <h1 className="mt-2 font-display text-4xl font-bold">{pub.title}</h1>
             <p className="mt-3 text-lg text-slate-300">{pub.subtitle}</p>
+            {pub.authorName && <p className="mt-2 text-sm text-slate-400">by {pub.authorName}</p>}
             <p className="mt-6 text-2xl font-semibold text-gold-light">{priceLabel(pub)}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
@@ -72,10 +86,55 @@ export default async function PublicationPage({ params }: { params: Promise<{ sl
 
       <div id="details" className="mx-auto max-w-3xl px-4 py-14">
         <h2 className="font-display text-2xl font-bold text-navy">About this publication</h2>
-        <p className="mt-4 whitespace-pre-line leading-relaxed text-slate-700">
-          {pub.description || "A detailed description of this publication will be added shortly."}
-        </p>
-        <div className="mt-8 rounded-2xl bg-mist p-6">
+        <div className="mt-4 whitespace-pre-line leading-relaxed text-slate-700">
+          {pub.longDescription || pub.description || "A detailed description of this publication will be added shortly."}
+        </div>
+
+        {pub.tocImageUrl && (
+          <div className="mt-10">
+            <h2 className="font-display text-2xl font-bold text-navy">What's Inside</h2>
+            <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+              <Image
+                src={pub.tocImageUrl}
+                alt={`${pub.title} — table of contents`}
+                width={720}
+                height={1080}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+
+        {pub.spreadImageUrl && (
+          <div className="mt-10">
+            <h2 className="font-display text-2xl font-bold text-navy">A Look Inside</h2>
+            <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+              <Image
+                src={pub.spreadImageUrl}
+                alt={`${pub.title} — sample page`}
+                width={1080}
+                height={720}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+
+        {bonuses.length > 0 && (
+          <div className="mt-10">
+            <h2 className="font-display text-2xl font-bold text-navy">Bonus Guides Included Free</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {bonuses.map((b, i) => (
+                <div key={i} className="rounded-2xl bg-mist p-5">
+                  <p className="font-display font-semibold text-navy">🎁 {b.title}</p>
+                  <p className="mt-1 text-sm text-slate-600">{b.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-10 rounded-2xl bg-mist p-6">
           <p className="font-display text-lg text-navy">Our promise</p>
           <p className="mt-2 text-sm text-slate-600">
             Every Digital Angel publication delivers practical knowledge readers can trust and use.

@@ -3,7 +3,9 @@ import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, publications, testimonials } from "@/db/schema";
 import { BookCard, BookCover, priceLabel, type Pub } from "@/components/book";
-import { NewsletterForm, SmartSearch } from "@/components/public-forms";
+import { NewsletterForm } from "@/components/public-forms";
+import { AnimatedMarqueeHero } from "@/components/ui/hero-3";
+import { Reveal } from "@/components/ui/reveal";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +14,13 @@ const WHY = [
   { t: "Editorially Crafted", d: "Researched, edited and designed to a premium standard.", i: "✒️" },
   { t: "Trusted Guidance", d: "Content you can rely on regardless of your background.", i: "🛡️" },
   { t: "Instant Digital Access", d: "Download and start reading within minutes of purchase.", i: "⚡" },
+];
+
+const HERO_IMAGES = [
+  "/images/publications/husbands-postpartum-handbook-cover.jpg",
+  "/images/publications/old-midwifes-tearing-secret-cover.jpg",
+  "/images/publications/love-after-baby-cover.jpg",
+  "/images/publications/all-three-books-group-shot.jpg",
 ];
 
 export default async function HomePage() {
@@ -31,47 +40,14 @@ export default async function HomePage() {
   return (
     <>
       {/* HERO */}
-      <section className="relative overflow-hidden bg-navy text-white">
-        <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 lg:grid-cols-2 lg:py-28">
-          <div>
-            <p className="mb-4 inline-block rounded-full border border-gold/50 px-4 py-1 text-xs uppercase tracking-[0.25em] text-gold-light">
-              Digital Publishing
-            </p>
-            <h1 className="font-display text-4xl font-bold leading-tight md:text-6xl">
-              Where Knowledge <span className="text-gold-light">Creates Freedom.</span>
-            </h1>
-            <p className="mt-6 max-w-lg text-lg text-slate-300">
-              Practical eBooks and educational resources that help you live healthier, wiser and more successful —
-              written in plain language anyone can use.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/publications"
-                className="rounded-full bg-gold px-7 py-3 font-semibold text-navy hover:bg-gold-light"
-              >
-                Explore Publications
-              </Link>
-              <Link
-                href="/resources"
-                className="rounded-full border border-white/40 px-7 py-3 font-semibold text-white hover:bg-white/10"
-              >
-                Free Resources
-              </Link>
-            </div>
-            <div className="mt-8 max-w-xl [&_input]:text-slate-800">
-              <SmartSearch />
-            </div>
-          </div>
-          <div className="flex justify-center gap-6">
-            {(featured.length ? featured : list).slice(0, 3).map((p, i) => (
-              <div key={p.id} style={{ marginTop: i * 18 }}>
-                <BookCover pub={p} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <AnimatedMarqueeHero
+        tagline="Digital Publishing"
+        title="Where Knowledge Creates Freedom."
+        description="Practical eBooks and educational resources that help you live healthier, wiser and more successful — written in plain language anyone can use."
+        ctaText="Explore Publications"
+        ctaHref="/publications"
+        images={HERO_IMAGES}
+      />
 
       {/* FEATURED */}
       <Section title="Featured Publications" sub="Hand-picked guides our readers return to again and again.">
@@ -106,14 +82,18 @@ export default async function HomePage() {
       {/* WHY */}
       <section className="bg-mist py-20">
         <div className="mx-auto max-w-6xl px-4">
-          <h2 className="text-center font-display text-3xl font-bold text-navy">Why Choose Digital Angel</h2>
+          <Reveal>
+            <h2 className="text-center font-display text-3xl font-bold text-navy">Why Choose Digital Angel</h2>
+          </Reveal>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {WHY.map((w) => (
-              <div key={w.t} className="rounded-2xl bg-white p-6 shadow-sm">
-                <span className="text-3xl">{w.i}</span>
-                <h3 className="mt-3 font-display text-lg font-bold text-navy">{w.t}</h3>
-                <p className="mt-2 text-sm text-slate-600">{w.d}</p>
-              </div>
+            {WHY.map((w, i) => (
+              <Reveal key={w.t} delay={i * 0.1}>
+                <div className="rounded-2xl bg-white p-6 shadow-sm transition-shadow hover:shadow-[0_0_30px_-8px_rgba(201,162,39,0.4)]">
+                  <span className="text-3xl">{w.i}</span>
+                  <h3 className="mt-3 font-display text-lg font-bold text-navy">{w.t}</h3>
+                  <p className="mt-2 text-sm text-slate-600">{w.d}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -122,6 +102,7 @@ export default async function HomePage() {
       {/* BOOK OF THE MONTH */}
       {bom && (
         <section className="mx-auto my-20 max-w-6xl px-4">
+          <Reveal>
           <div className="grid items-center gap-10 rounded-3xl bg-navy p-10 text-white lg:grid-cols-[220px_1fr]">
             <div className="flex justify-center">
               <BookCover pub={bom} />
@@ -141,6 +122,7 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
+          </Reveal>
         </section>
       )}
 
@@ -183,6 +165,7 @@ export default async function HomePage() {
       {/* ABOUT */}
       <section className="bg-mist py-20">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 lg:grid-cols-2">
+          <Reveal>
           <div>
             <h2 className="font-display text-3xl font-bold text-navy">About Digital Angel</h2>
             <p className="mt-4 text-slate-600">
@@ -198,13 +181,16 @@ export default async function HomePage() {
               Read our full story →
             </Link>
           </div>
-          <div className="rounded-3xl border border-gold/40 bg-white p-8">
+          </Reveal>
+          <Reveal delay={0.15}>
+          <div className="rounded-3xl border border-gold/40 bg-white p-8 transition-shadow hover:shadow-[0_0_35px_-8px_rgba(201,162,39,0.45)]">
             <p className="font-display text-xl text-navy">Our Brand Promise</p>
             <p className="mt-3 text-slate-600">
               Every Digital Angel publication delivers practical knowledge readers can trust and use to improve their
               lives.
             </p>
           </div>
+          </Reveal>
         </div>
       </section>
 
@@ -214,9 +200,9 @@ export default async function HomePage() {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {quotes.map((t) => (
-              <figure key={t.id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <figure key={t.id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-[0_0_35px_-8px_rgba(201,162,39,0.45)]">
                 <div className="text-gold">{"★".repeat(t.rating)}</div>
-                <blockquote className="mt-3 text-slate-700">“{t.quote}”</blockquote>
+                <blockquote className="mt-3 text-slate-700">"{t.quote}"</blockquote>
                 <figcaption className="mt-4 text-sm font-semibold text-navy">
                   {t.name} <span className="font-normal text-slate-500">· {t.role}</span>
                 </figcaption>
@@ -227,6 +213,7 @@ export default async function HomePage() {
       </Section>
 
       <section className="bg-navy py-16">
+        <Reveal>
         <div className="mx-auto flex max-w-4xl flex-col items-center px-4 text-center">
           <h2 className="font-display text-3xl font-bold text-white">Join the Digital Angel Newsletter</h2>
           <p className="mt-3 text-slate-300">Free guides, new releases and reader-only offers.</p>
@@ -234,6 +221,7 @@ export default async function HomePage() {
             <NewsletterForm dark />
           </div>
         </div>
+        </Reveal>
       </section>
     </>
   );
@@ -250,9 +238,13 @@ export function Section({
 }) {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16">
-      <h2 className="font-display text-3xl font-bold text-navy">{title}</h2>
-      {sub && <p className="mt-2 text-slate-600">{sub}</p>}
-      <div className="mt-8">{children}</div>
+      <Reveal>
+        <h2 className="font-display text-3xl font-bold text-navy">{title}</h2>
+        {sub && <p className="mt-2 text-slate-600">{sub}</p>}
+      </Reveal>
+      <Reveal delay={0.1}>
+        <div className="mt-8">{children}</div>
+      </Reveal>
     </section>
   );
 }
