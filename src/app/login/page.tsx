@@ -63,9 +63,7 @@ export default function LoginPage() {
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
-        <p className="mt-4 rounded-xl bg-mist p-3 text-xs text-slate-500">
-          Demo account: <b>admin@digitalangel.com</b> / <b>angel1234</b>
-        </p>
+        
       </div>
     </div>
   );
