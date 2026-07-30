@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const b = await req.json();
   if (!b?.title) return NextResponse.json({ error: "Title required" }, { status: 400 });
-  const slug = `${slugify(String(b.slug || b.title))}-${Math.random().toString(36).slice(2, 6)}`;
+  const slug = `${slugify(String(b.title))}-${Math.random().toString(36).slice(2, 6)}`;
   const [row] = await db
     .insert(publications)
     .values({
@@ -30,10 +30,16 @@ export async function POST(req: Request) {
       slug,
       subtitle: String(b.subtitle ?? ""),
       description: String(b.description ?? ""),
+      longDescription: String(b.longDescription ?? ""),
+      authorName: String(b.authorName ?? ""),
       category: String(b.category ?? "Premium eBooks"),
       price: String(b.price ?? "0"),
       currency: String(b.currency ?? "USD"),
       coverColor: String(b.coverColor ?? "#0b1f3a"),
+      coverImageUrl: String(b.coverImageUrl ?? ""),
+      tocImageUrl: String(b.tocImageUrl ?? ""),
+      spreadImageUrl: String(b.spreadImageUrl ?? ""),
+      bonuses: String(b.bonuses ?? "[]"),
       buyLink: String(b.buyLink ?? ""),
       sampleLink: String(b.sampleLink ?? ""),
       status: String(b.status ?? "published"),

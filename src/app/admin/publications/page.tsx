@@ -25,8 +25,6 @@ const blank = {
   title: "",
   subtitle: "",
   description: "",
-  longDescription: "",
-  authorName: "",
   category: CATEGORIES[0],
   price: "9.99",
   currency: "USD",
@@ -43,6 +41,82 @@ const blank = {
   isNewRelease: true,
   isFree: false,
 };
+
+async function uploadImage(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch("/api/upload", { method: "POST", body: fd });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error ?? "Upload failed");
+  }
+  const data = await res.json();
+  return data.url as string;
+}
+
+function ImageField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const url = await uploadImage(file);
+      onChange(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
+
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-500">{label}</span>
+      <div className="flex items-center gap-3">
+        {value ? (
+          <img src={value} alt={label} className="h-20 w-16 rounded-lg object-cover shadow-sm" />
+        ) : (
+          <div className="grid h-20 w-16 place-items-center rounded-lg border border-dashed border-slate-300 text-[10px] text-slate-400">
+            No image
+          </div>
+        )}
+        <div className="flex-1">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFile}
+            disabled={uploading}
+            className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-navy file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-navy-light disabled:opacity-60"
+          />
+          {uploading && <p className="mt-1 text-xs text-slate-500">Uploading…</p>}
+          {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+          {value && !uploading && (
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              className="mt-1 text-xs text-slate-500 underline hover:text-red-600"
+            >
+              Remove image
+            </button>
+          )}
+        </div>
+      </div>
+    </label>
+  );
+}
 
 export default function PublicationsAdmin() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -104,7 +178,7 @@ export default function PublicationsAdmin() {
   }
 
   async function remove(row: Row) {
-    if (!confirm(`Delete “${row.title}”?`)) return;
+    if (!confirm(`Delete "${row.title}"?`)) return;
     const prev = rows;
     setRows((r) => r.filter((x) => x.id !== row.id));
     const res = await fetch(`/api/publications/${row.id}`, { method: "DELETE" });
@@ -226,14 +300,6 @@ export default function PublicationsAdmin() {
                   onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
                 />
               </Field>
-              <Field label="Author name">
-                <input
-                  className={inputCls}
-                  placeholder="e.g. Angele Nena"
-                  value={form.authorName}
-                  onChange={(e) => setForm({ ...form, authorName: e.target.value })}
-                />
-              </Field>
               <Field label="Category">
                 <select
                   className={inputCls}
@@ -283,7 +349,7 @@ export default function PublicationsAdmin() {
                   onChange={(e) => setForm({ ...form, sampleLink: e.target.value })}
                 />
               </Field>
-              <Field label="Cover colour (fallback if no image)">
+              <Field label="Cover colour (fallback if no cover image)">
                 <input
                   type="color"
                   className="h-10 w-full rounded-xl border border-slate-300"
@@ -292,71 +358,30 @@ export default function PublicationsAdmin() {
                 />
               </Field>
 
-              <div className="sm:col-span-2">
-                <div className="rounded-xl border border-dashed border-slate-300 bg-mist p-4">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                    Book images
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Upload your image files to <code>public/images/publications/</code> in the project
-                    first, then paste the path here (e.g. <code>/images/publications/my-book-cover.jpg</code>).
-                  </p>
-                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                    <Field label="Cover image path">
-                      <input
-                        className={inputCls}
-                        placeholder="/images/publications/book-cover.jpg"
-                        value={form.coverImageUrl}
-                        onChange={(e) => setForm({ ...form, coverImageUrl: e.target.value })}
-                      />
-                    </Field>
-                    <Field label="Table of contents image path">
-                      <input
-                        className={inputCls}
-                        placeholder="/images/publications/book-toc.jpg"
-                        value={form.tocImageUrl}
-                        onChange={(e) => setForm({ ...form, tocImageUrl: e.target.value })}
-                      />
-                    </Field>
-                    <Field label="Sample interior spread path">
-                      <input
-                        className={inputCls}
-                        placeholder="/images/publications/book-spread.jpg"
-                        value={form.spreadImageUrl}
-                        onChange={(e) => setForm({ ...form, spreadImageUrl: e.target.value })}
-                      />
-                    </Field>
-                  </div>
-                  {form.coverImageUrl && (
-                    <div className="mt-4">
-                      <p className="mb-2 text-xs text-slate-500">Cover preview:</p>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={form.coverImageUrl}
-                        alt="Cover preview"
-                        className="h-40 w-auto rounded-lg border border-slate-200 object-cover"
-                        onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
-                      />
-                    </div>
-                  )}
-                </div>
+              <div className="sm:col-span-2 grid gap-4 rounded-2xl bg-mist p-4 sm:grid-cols-3">
+                <ImageField
+                  label="Cover image"
+                  value={form.coverImageUrl}
+                  onChange={(url) => setForm({ ...form, coverImageUrl: url })}
+                />
+                <ImageField
+                  label="Table of contents image"
+                  value={form.tocImageUrl}
+                  onChange={(url) => setForm({ ...form, tocImageUrl: url })}
+                />
+                <ImageField
+                  label="Interior spread image"
+                  value={form.spreadImageUrl}
+                  onChange={(url) => setForm({ ...form, spreadImageUrl: url })}
+                />
               </div>
 
               <div className="sm:col-span-2">
-                <Field label="Description (short, shown on listing cards)">
+                <Field label="Description">
                   <textarea
-                    className={`${inputCls} min-h-24`}
+                    className={`${inputCls} min-h-32`}
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  />
-                </Field>
-              </div>
-              <div className="sm:col-span-2">
-                <Field label="Long description (full sales page copy)">
-                  <textarea
-                    className={`${inputCls} min-h-48`}
-                    value={form.longDescription}
-                    onChange={(e) => setForm({ ...form, longDescription: e.target.value })}
                   />
                 </Field>
               </div>
