@@ -7,7 +7,7 @@ import { useState } from "react";
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("admin@digitalangel.com");
-  const [password, setPassword] = useState("angel1234");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -42,6 +42,7 @@ export default function LoginPage() {
           <input
             type="email"
             required
+            autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-navy"
@@ -50,6 +51,7 @@ export default function LoginPage() {
           <input
             type="password"
             required
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-navy"
@@ -63,9 +65,6 @@ export default function LoginPage() {
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
-        <p className="mt-4 rounded-xl bg-mist p-3 text-xs text-slate-500">
-          {/*Demo account: <b>admin@digitalangel.com</b> / <b>angel1234</b>*/}
-        </p>
       </div>
     </div>
   );
