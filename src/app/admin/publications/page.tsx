@@ -25,10 +25,15 @@ const blank = {
   title: "",
   subtitle: "",
   description: "",
+  longDescription: "",
+  authorName: "",
   category: CATEGORIES[0],
   price: "9.99",
   currency: "USD",
   coverColor: "#0b1f3a",
+  coverImageUrl: "",
+  tocImageUrl: "",
+  spreadImageUrl: "",
   buyLink: "",
   sampleLink: "",
   status: "published",
@@ -221,6 +226,14 @@ export default function PublicationsAdmin() {
                   onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
                 />
               </Field>
+              <Field label="Author name">
+                <input
+                  className={inputCls}
+                  placeholder="e.g. Angele Nena"
+                  value={form.authorName}
+                  onChange={(e) => setForm({ ...form, authorName: e.target.value })}
+                />
+              </Field>
               <Field label="Category">
                 <select
                   className={inputCls}
@@ -270,7 +283,7 @@ export default function PublicationsAdmin() {
                   onChange={(e) => setForm({ ...form, sampleLink: e.target.value })}
                 />
               </Field>
-              <Field label="Cover colour">
+              <Field label="Cover colour (fallback if no image)">
                 <input
                   type="color"
                   className="h-10 w-full rounded-xl border border-slate-300"
@@ -278,12 +291,72 @@ export default function PublicationsAdmin() {
                   onChange={(e) => setForm({ ...form, coverColor: e.target.value })}
                 />
               </Field>
+
               <div className="sm:col-span-2">
-                <Field label="Description">
+                <div className="rounded-xl border border-dashed border-slate-300 bg-mist p-4">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    Book images
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Upload your image files to <code>public/images/publications/</code> in the project
+                    first, then paste the path here (e.g. <code>/images/publications/my-book-cover.jpg</code>).
+                  </p>
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                    <Field label="Cover image path">
+                      <input
+                        className={inputCls}
+                        placeholder="/images/publications/book-cover.jpg"
+                        value={form.coverImageUrl}
+                        onChange={(e) => setForm({ ...form, coverImageUrl: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Table of contents image path">
+                      <input
+                        className={inputCls}
+                        placeholder="/images/publications/book-toc.jpg"
+                        value={form.tocImageUrl}
+                        onChange={(e) => setForm({ ...form, tocImageUrl: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Sample interior spread path">
+                      <input
+                        className={inputCls}
+                        placeholder="/images/publications/book-spread.jpg"
+                        value={form.spreadImageUrl}
+                        onChange={(e) => setForm({ ...form, spreadImageUrl: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+                  {form.coverImageUrl && (
+                    <div className="mt-4">
+                      <p className="mb-2 text-xs text-slate-500">Cover preview:</p>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={form.coverImageUrl}
+                        alt="Cover preview"
+                        className="h-40 w-auto rounded-lg border border-slate-200 object-cover"
+                        onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="sm:col-span-2">
+                <Field label="Description (short, shown on listing cards)">
                   <textarea
-                    className={`${inputCls} min-h-32`}
+                    className={`${inputCls} min-h-24`}
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  />
+                </Field>
+              </div>
+              <div className="sm:col-span-2">
+                <Field label="Long description (full sales page copy)">
+                  <textarea
+                    className={`${inputCls} min-h-48`}
+                    value={form.longDescription}
+                    onChange={(e) => setForm({ ...form, longDescription: e.target.value })}
                   />
                 </Field>
               </div>
