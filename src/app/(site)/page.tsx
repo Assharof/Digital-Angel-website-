@@ -110,7 +110,7 @@ export default async function HomePage() {
             <div>
               <p className="text-xs uppercase tracking-[0.25em] text-gold-light">Featured Book of the Month</p>
               <h2 className="mt-2 font-display text-3xl font-bold">{bom.title}</h2>
-              <p className="mt-3 max-w-2xl text-slate-300">{bom.description || bom.subtitle}</p>
+              <p className="mt-3 line-clamp-3 max-w-2xl text-slate-300">{bom.description || bom.subtitle}</p>
               <div className="mt-6 flex flex-wrap items-center gap-4">
                 <span className="text-xl font-semibold text-gold-light">{priceLabel(bom)}</span>
                 <Link

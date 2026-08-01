@@ -25,6 +25,7 @@ const blank = {
   title: "",
   subtitle: "",
   description: "",
+  longDescription: "",
   category: CATEGORIES[0],
   price: "9.99",
   currency: "USD",
@@ -377,11 +378,20 @@ export default function PublicationsAdmin() {
               </div>
 
               <div className="sm:col-span-2">
-                <Field label="Description">
+                <Field label="Description (short — shown on cards, 2-3 sentences max)">
                   <textarea
-                    className={`${inputCls} min-h-32`}
+                    className={`${inputCls} min-h-24`}
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  />
+                </Field>
+              </div>
+              <div className="sm:col-span-2">
+                <Field label="Long description (full sales page copy — shown on the book's own page only)">
+                  <textarea
+                    className={`${inputCls} min-h-48`}
+                    value={form.longDescription}
+                    onChange={(e) => setForm({ ...form, longDescription: e.target.value })}
                   />
                 </Field>
               </div>
