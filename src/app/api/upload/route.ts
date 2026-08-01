@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
 import { getCurrentUser } from "@/lib/auth";
+
+// Server-only client using the service role key — bypasses storage RLS so
+// authenticated admin uploads always succeed. NEVER expose this key to the
+// browser; it must only ever be read here, in a server route.
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+const BUCKET = "publication-images";
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
@@ -26,22 +35,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Image must be under 8MB" }, { status: 400 });
   }
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  const ext = path.extname(file.name) || ".jpg";
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
   const safeBase = file.name
-    .replace(ext, "")
+    .replace(`.${ext}`, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "")
     .slice(0, 60);
-  const filename = `${Date.now()}-${safeBase || "upload"}${ext}`;
+  const filename = `${Date.now()}-${safeBase || "upload"}.${ext}`;
 
-  const uploadDir = path.join(process.cwd(), "public", "images", "publications");
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(path.join(uploadDir, filename), buffer);
+  const bytes = await file.arrayBuffer();
 
-  const url = `/images/publications/${filename}`;
-  return NextResponse.json({ url });
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from(BUCKET)
+    .upload(filename, bytes, { contentType: file.type, upsert: false });
+
+  if (uploadError) {
+    return NextResponse.json({ error: uploadError.message }, { status: 500 });
+  }
+
+  const { data } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(filename);
+
+  return NextResponse.json({ url: data.publicUrl });
 }
