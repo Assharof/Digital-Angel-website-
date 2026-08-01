@@ -45,9 +45,16 @@ export const pool =
 // unhandled 'error' event and can crash the whole Node process. Logging it
 // here lets pg quietly remove the bad connection and open a fresh one on
 // the next query instead.
-pool.on("error", (err) => {
-  console.error("Unexpected error on idle database client", err);
-});
+//
+// Guarded so dev-mode hot-reloads (which re-run this module repeatedly but
+// reuse the same cached pool via globalForDb) don't keep stacking up a new
+// listener on every file save — that's what triggered the
+// MaxListenersExceededWarning.
+if (pool.listenerCount("error") === 0) {
+  pool.on("error", (err) => {
+    console.error("Unexpected error on idle database client", err);
+  });
+}
 
 if (process.env.NODE_ENV !== "production") {
   globalForDb.__arenaNextJsPostgresqlPool = pool;
