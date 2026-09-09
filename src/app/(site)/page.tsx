@@ -202,7 +202,7 @@ export default async function HomePage() {
             {quotes.map((t) => (
               <figure key={t.id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-[0_0_35px_-8px_rgba(201,162,39,0.45)]">
                 <div className="text-gold">{"★".repeat(t.rating)}</div>
-                <blockquote className="mt-3 text-slate-700">"{t.quote}"</blockquote>
+                <blockquote className="mt-3 text-slate-700">&quot;{t.quote}&quot;</blockquote>
                 <figcaption className="mt-4 text-sm font-semibold text-navy">
                   {t.name} <span className="font-normal text-slate-500">· {t.role}</span>
                 </figcaption>

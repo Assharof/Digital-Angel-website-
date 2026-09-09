@@ -92,7 +92,7 @@ export default async function PublicationPage({ params }: { params: Promise<{ sl
 
         {pub.tocImageUrl && (
           <div className="mt-10">
-            <h2 className="font-display text-2xl font-bold text-navy">What's Inside</h2>
+            <h2 className="font-display text-2xl font-bold text-navy">What&apos;s Inside</h2>
             <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
               <Image
                 src={pub.tocImageUrl}
