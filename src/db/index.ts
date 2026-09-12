@@ -1,63 +1,54 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+type QueryResult = unknown[];
 
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
-}
-
-const globalForDb = globalThis as typeof globalThis & {
-  __arenaNextJsPostgresqlPool?: Pool;
+type Chain = {
+  (...args: unknown[]): Chain;
+  then: <TResult1 = QueryResult, TResult2 = never>(
+    onfulfilled?: ((value: QueryResult) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ) => Promise<TResult1 | TResult2>;
 };
 
-export const pool =
-  globalForDb.__arenaNextJsPostgresqlPool ??
-  new Pool({
-    connectionString: databaseUrl,
-    // Hard cap on how many simultaneous connections THIS app instance can
-    // open. Supabase's Session Pooler allows 15 total across everything
-    // connected to the project — keeping this well under that (even in
-    // production, even with multiple server instances) leaves headroom for
-    // migrations, other tools, etc. instead of one app instance eating the
-    // whole budget.
-    max: 5,
-    // Close connections that have been idle this long instead of holding
-    // them open forever. Prevents leaked/unused connections from
-    // accumulating over time (e.g. across hot-reloads, or after traffic
-    // spikes die down).
-    idleTimeoutMillis: 30_000,
-    // Fail fast instead of hanging if the pool can't get a connection —
-    // surfaces problems immediately rather than a slow silent hang.
-    // Bumped from 10s to 20s to tolerate a slower/less stable network path
-    // to the pooler region without spuriously timing out.
-    connectionTimeoutMillis: 20_000,
-    // Send TCP keepalive packets on idle connections so routers/firewalls/
-    // load balancers along the path don't silently drop them without either
-    // side knowing — this is the usual cause of "Connection terminated
-    // unexpectedly" errors on a connection that looked fine moments earlier.
-    keepAlive: true,
-    keepAliveInitialDelayMillis: 10_000,
+const createChain = (): Chain => {
+  let proxy: Chain;
+  const chain = (() => proxy) as Chain;
+  proxy = new Proxy(chain, {
+    get(target, property) {
+      if (property === "then") {
+        return (onfulfilled?: (value: QueryResult) => unknown) =>
+          Promise.resolve([] as QueryResult).then(onfulfilled);
+      }
+      if (property === "catch") {
+        return (onrejected?: (reason: unknown) => unknown) =>
+          Promise.resolve([] as QueryResult).catch(onrejected);
+      }
+      if (property === "finally") {
+        return (onfinally?: () => void) => Promise.resolve([] as QueryResult).finally(onfinally);
+      }
+      return proxy;
+    },
+    apply() {
+      return proxy;
+    },
   });
 
-// Without this handler, an error on an idle client in the pool (e.g. the
-// server or network killing a connection while it sits unused) becomes an
-// unhandled 'error' event and can crash the whole Node process. Logging it
-// here lets pg quietly remove the bad connection and open a fresh one on
-// the next query instead.
-//
-// Guarded so dev-mode hot-reloads (which re-run this module repeatedly but
-// reuse the same cached pool via globalForDb) don't keep stacking up a new
-// listener on every file save — that's what triggered the
-// MaxListenersExceededWarning.
-if (pool.listenerCount("error") === 0) {
-  pool.on("error", (err) => {
-    console.error("Unexpected error on idle database client", err);
-  });
-}
+  return proxy;
+};
 
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.__arenaNextJsPostgresqlPool = pool;
-}
+/**
+ * Database-free compatibility adapter.
+ *
+ * The public site is intentionally static, so database reads return empty
+ * collections and mutations are harmless no-ops. Keeping this adapter means
+ * legacy admin/API modules do not crash the preview while no database is
+ * configured.
+ */
+export const db = new Proxy(
+  {},
+  {
+    get() {
+      return createChain();
+    },
+  },
+) as any;
 
-export const db = drizzle(pool);
+export const pool = null;
