@@ -5,6 +5,20 @@ import { faqs, messages, publications, subscribers, testimonials } from "@/db/sc
 
 export const dynamic = "force-dynamic";
 
+type PublicationSummary = {
+  id: number;
+  title: string;
+  category: string;
+};
+
+type MessageSummary = {
+  id: number;
+  name: string;
+  email: string;
+  subject: string;
+  body: string;
+};
+
 export default async function AdminDashboard() {
   const [pubs, subs, msgs, tests, faqRows] = await Promise.all([
     db.select().from(publications).orderBy(desc(publications.createdAt)),
@@ -13,6 +27,9 @@ export default async function AdminDashboard() {
     db.select({ c: sql<number>`count(*)::int` }).from(testimonials),
     db.select({ c: sql<number>`count(*)::int` }).from(faqs),
   ]);
+
+  const publicationRows = pubs as unknown as PublicationSummary[];
+  const messageRows = msgs as unknown as MessageSummary[];
 
   const stats = [
     { label: "Publications", value: pubs.length, href: "/admin/publications", icon: "📚" },
@@ -47,7 +64,7 @@ export default async function AdminDashboard() {
             <p className="mt-6 text-sm text-slate-500">No publications yet.</p>
           ) : (
             <ul className="mt-4 divide-y divide-slate-100">
-              {pubs.slice(0, 5).map((p) => (
+              {publicationRows.slice(0, 5).map((p) => (
                 <li key={p.id} className="flex items-center justify-between py-3">
                   <span className="truncate text-sm font-medium text-slate-700">{p.title}</span>
                   <span className="rounded-full bg-mist px-3 py-1 text-xs text-slate-500">{p.category}</span>
@@ -62,7 +79,7 @@ export default async function AdminDashboard() {
             <p className="mt-6 text-sm text-slate-500">Inbox is empty.</p>
           ) : (
             <ul className="mt-4 divide-y divide-slate-100">
-              {msgs.map((m) => (
+              {messageRows.map((m) => (
                 <li key={m.id} className="py-3">
                   <p className="text-sm font-medium text-slate-700">
                     {m.name} <span className="text-slate-400">· {m.email}</span>

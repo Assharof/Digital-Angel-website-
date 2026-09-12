@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     "Browse the full Digital Angel library of premium eBooks covering health, parenting, personal development, digital skills and careers.",
 };
 
+type Category = {
+  id: number;
+  name: string;
+  emoji: string;
+};
+
 export default async function PublicationsPage({
   searchParams,
 }: {
@@ -25,6 +31,7 @@ export default async function PublicationsPage({
     db.select().from(categories).orderBy(asc(categories.name)),
   ]);
 
+  const categoryRows = cats as unknown as Category[];
   const term = q.trim().toLowerCase();
   const list = (rows as unknown as Pub[]).filter((p) => {
     const matchQ =
@@ -47,7 +54,7 @@ export default async function PublicationsPage({
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Chip href="/publications" active={!category} label="All" />
-        {cats.map((c) => (
+        {categoryRows.map((c) => (
           <Chip
             key={c.id}
             href={`/publications?category=${encodeURIComponent(c.name)}`}

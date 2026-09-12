@@ -10,8 +10,14 @@ export const metadata: Metadata = {
   description: "Answers about Digital Angel eBooks, delivery, payments, refunds and support.",
 };
 
+type Faq = {
+  id: number;
+  question: string;
+  answer: string;
+};
+
 export default async function FaqPage() {
-  const rows = await db.select().from(faqs).orderBy(asc(faqs.sortOrder));
+  const rows: Faq[] = await db.select().from(faqs).orderBy(asc(faqs.sortOrder));
   return (
     <div className="mx-auto max-w-3xl px-4 py-14">
       <h1 className="font-display text-4xl font-bold text-navy">Frequently Asked Questions</h1>

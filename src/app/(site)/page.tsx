@@ -23,6 +23,21 @@ const HERO_IMAGES = [
   "/images/publications/all-three-books-group-shot.jpg",
 ];
 
+type Category = {
+  id: number;
+  name: string;
+  emoji: string;
+  description: string;
+};
+
+type Testimonial = {
+  id: number;
+  name: string;
+  role: string;
+  quote: string;
+  rating: number;
+};
+
 export default async function HomePage() {
   const [pubs, cats, quotes] = await Promise.all([
     db.select().from(publications).where(eq(publications.status, "published")).orderBy(desc(publications.createdAt)),
@@ -31,6 +46,8 @@ export default async function HomePage() {
   ]);
 
   const list = pubs as unknown as Pub[];
+  const categoryRows = cats as unknown as Category[];
+  const testimonialRows = quotes as unknown as Testimonial[];
   const featured = list.filter((p) => (p as unknown as { isFeatured: boolean }).isFeatured).slice(0, 3);
   const bom = list.find((p) => (p as unknown as { isBookOfMonth: boolean }).isBookOfMonth);
   const newReleases = list.filter((p) => (p as unknown as { isNewRelease: boolean }).isNewRelease).slice(0, 4);
@@ -65,7 +82,7 @@ export default async function HomePage() {
       {/* CATEGORIES */}
       <Section title="Browse by Category" sub="Find the exact knowledge you need.">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {cats.map((c) => (
+          {categoryRows.map((c) => (
             <Link
               key={c.id}
               href={`/publications?category=${encodeURIComponent(c.name)}`}
@@ -199,7 +216,7 @@ export default async function HomePage() {
           <Empty text="Testimonials coming soon." />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {quotes.map((t) => (
+            {testimonialRows.map((t) => (
               <figure key={t.id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-[0_0_35px_-8px_rgba(201,162,39,0.45)]">
                 <div className="text-gold">{"★".repeat(t.rating)}</div>
                 <blockquote className="mt-3 text-slate-700">"{t.quote}"</blockquote>
