@@ -10,12 +10,20 @@ export const metadata: Metadata = {
   description: "Real stories from readers who used Digital Angel publications to improve their lives.",
 };
 
+type Testimonial = {
+  id: number;
+  name: string;
+  role: string;
+  quote: string;
+  rating: number;
+};
+
 export default async function TestimonialsPage() {
-  const rows = await db
+  const rows = (await db
     .select()
     .from(testimonials)
     .where(eq(testimonials.published, true))
-    .orderBy(desc(testimonials.createdAt));
+    .orderBy(desc(testimonials.createdAt))) as unknown as Testimonial[];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-14">

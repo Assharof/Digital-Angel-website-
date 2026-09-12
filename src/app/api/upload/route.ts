@@ -5,11 +5,6 @@ import { getCurrentUser } from "@/lib/auth";
 // Server-only client using the service role key — bypasses storage RLS so
 // authenticated admin uploads always succeed. NEVER expose this key to the
 // browser; it must only ever be read here, in a server route.
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 const BUCKET = "publication-images";
 
 export async function POST(req: NextRequest) {
@@ -17,6 +12,13 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    return NextResponse.json({ error: "Image storage is not configured" }, { status: 503 });
+  }
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
