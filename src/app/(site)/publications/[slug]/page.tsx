@@ -2,16 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { and, eq, ne } from "drizzle-orm";
-import { db } from "@/db";
-import { publications } from "@/db/schema";
 import { BookCard, BookCover, priceLabel, type Pub } from "@/components/book";
+import { PRODUCT_CATALOG, getProduct } from "@/lib/product-catalog";
 
 export const dynamic = "force-dynamic";
 
 async function getPub(slug: string) {
-  const rows = await db.select().from(publications).where(eq(publications.slug, slug)).limit(1);
-  return (rows[0] as unknown as Pub) ?? null;
+  return getProduct(slug);
 }
 
 function parseBonuses(json?: string): { title: string; description: string }[] {
@@ -43,11 +40,9 @@ export default async function PublicationPage({ params }: { params: Promise<{ sl
   const pub = await getPub(slug);
   if (!pub) notFound();
 
-  const related = (await db
-    .select()
-    .from(publications)
-    .where(and(eq(publications.category, pub.category), ne(publications.slug, slug)))
-    .limit(3)) as unknown as Pub[];
+  const related = PRODUCT_CATALOG.filter(
+    (product) => product.category === pub.category && product.slug !== slug,
+  ).slice(0, 3);
 
   const bonuses = parseBonuses(pub.bonuses);
 
