@@ -84,14 +84,24 @@ export function BookCard({ pub }: { pub: Pub }) {
       <p className="text-xs font-semibold uppercase tracking-widest text-gold">{pub.category}</p>
       <h3 className="mt-1 font-display text-lg font-bold text-navy">{pub.title}</h3>
       <p className="mt-1 line-clamp-2 text-sm text-slate-600">{pub.subtitle || pub.description}</p>
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex items-center justify-between gap-3">
         <span className="font-semibold text-navy">{priceLabel(pub)}</span>
-        <Link
-          href={`/publications/${pub.slug}`}
-          className="rounded-full bg-navy px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-navy-light"
-        >
-          View Book
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/publications/${pub.slug}`}
+            className="rounded-full border border-navy px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-slate-50"
+          >
+            Read More
+          </Link>
+          <a
+            href={pub.buyLink}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full bg-gold px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-gold-light"
+          >
+            Buy Now
+          </a>
+        </div>
       </div>
     </div>
   );
