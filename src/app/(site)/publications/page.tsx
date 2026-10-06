@@ -1,9 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { asc, desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { categories, publications } from "@/db/schema";
 import { BookCard, type Pub } from "@/components/book";
+import { PRODUCT_CATALOG } from "@/lib/product-catalog";
 import { SmartSearch } from "@/components/public-forms";
 
 export const dynamic = "force-dynamic";
@@ -26,14 +24,13 @@ export default async function PublicationsPage({
   searchParams: Promise<{ q?: string; category?: string }>;
 }) {
   const { q = "", category = "" } = await searchParams;
-  const [rows, cats] = await Promise.all([
-    db.select().from(publications).where(eq(publications.status, "published")).orderBy(desc(publications.createdAt)),
-    db.select().from(categories).orderBy(asc(categories.name)),
-  ]);
-
-  const categoryRows = cats as unknown as Category[];
+  const categoryRows: Category[] = PRODUCT_CATALOG.map((product, index) => ({
+    id: index + 1,
+    name: product.category,
+    emoji: "",
+  })).filter((category, index, categories) => categories.findIndex((item) => item.name === category.name) === index);
   const term = q.trim().toLowerCase();
-  const list = (rows as unknown as Pub[]).filter((p) => {
+  const list = PRODUCT_CATALOG.filter((p: Pub) => {
     const matchQ =
       !term ||
       [p.title, p.subtitle, p.description, p.category].join(" ").toLowerCase().includes(term);
