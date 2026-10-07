@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { categories, publications, testimonials } from "@/db/schema";
+import { categories, testimonials } from "@/db/schema";
 import { BookCard, BookCover, priceLabel, type Pub } from "@/components/book";
 import { NewsletterForm } from "@/components/public-forms";
 import { AnimatedMarqueeHero } from "@/components/ui/hero-3";
 import { Reveal } from "@/components/ui/reveal";
+import { PRODUCT_CATALOG } from "@/lib/product-catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -39,13 +40,12 @@ type Testimonial = {
 };
 
 export default async function HomePage() {
-  const [pubs, cats, quotes] = await Promise.all([
-    db.select().from(publications).where(eq(publications.status, "published")).orderBy(desc(publications.createdAt)),
+  const [cats, quotes] = await Promise.all([
     db.select().from(categories).orderBy(asc(categories.name)),
     db.select().from(testimonials).where(eq(testimonials.published, true)).limit(6),
   ]);
 
-  const list = pubs as unknown as Pub[];
+  const list = PRODUCT_CATALOG as Pub[];
   const categoryRows = cats as unknown as Category[];
   const testimonialRows = quotes as unknown as Testimonial[];
   const featured = list.filter((p) => (p as unknown as { isFeatured: boolean }).isFeatured).slice(0, 3);
@@ -65,6 +65,15 @@ export default async function HomePage() {
         ctaHref="/publications"
         images={HERO_IMAGES}
       />
+
+      {/* ALL PUBLICATIONS */}
+      <Section title="All Publications" sub="Explore every Digital Angel guide and start reading today.">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {list.map((p) => (
+            <BookCard key={p.id} pub={p} />
+          ))}
+        </div>
+      </Section>
 
       {/* FEATURED */}
       <Section title="Featured Publications" sub="Hand-picked guides our readers return to again and again.">
